@@ -1,0 +1,32 @@
+name: Telegram weather briefing
+on:
+  schedule:
+    - cron: '0 6,12,18 * * *'
+      timezone: 'Asia/Ho_Chi_Minh'
+  workflow_dispatch:
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Send forecast
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          CITY_NAME: 'TP. Hồ Chí Minh'
+          LATITUDE: '10.8231'
+          LONGITUDE: '106.6297'
+          RAIN_THRESHOLD: '50'
+        run: python weather_bot.py
+      - name: Upload run log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: weather-log-${{ github.run_id }}
+          path: logs/weather.log
+          if-no-files-found: ignore
+          retention-days: 7
